@@ -51,6 +51,23 @@
             </tbody>
         </table>
     </div>
-    {{ $transaksis->links('pagination::default') }}
+    @if ($transaksis->hasPages())
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:13px">
+            @if ($transaksis->onFirstPage())
+                <span style="color:#aab4c5">‹ Sebelumnya</span>
+            @else
+                <a href="{{ $transaksis->previousPageUrl() }}" style="color:#17243b;text-decoration:none">‹ Sebelumnya</a>
+            @endif
+
+            <span style="color:#8491a5">Halaman {{ $transaksis->currentPage() }} dari {{ $transaksis->lastPage() }}</span>
+
+            @if ($transaksis->hasMorePages())
+                <a href="{{ $transaksis->nextPageUrl() }}" style="color:#17243b;text-decoration:none">Berikutnya ›</a>
+            @else
+                <span style="color:#aab4c5">Berikutnya ›</span>
+            @endif
+        </div>
+    @endif
+
 </div>
 @endsection

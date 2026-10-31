@@ -34,3 +34,5 @@ Route::middleware('auth')->group(function () {
     Route::resource('barang', BarangController::class);
     Route::resource('kategori', KategoriController::class)->except('show');
 });
+
+Route::middleware('auth')->group(base_path('routes/akuntansi.php'));
