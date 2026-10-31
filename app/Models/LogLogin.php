@@ -4,12 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Str;
 
 class LogLogin extends Model
 {
     protected $table = 'log_logins';
 
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return ['perangkat_baru' => 'boolean'];
+    }
 
     public function user(): BelongsTo
     {
@@ -28,45 +35,93 @@ class LogLogin extends Model
     {
         try {
             $request = request();
+            $userId = $userId ?? auth()->id();
 
             $cabangId = $cabangId ?: (session('cabang_id') ? (int) session('cabang_id') : null);
             if ($cabangId && ! Cabang::whereKey($cabangId)->exists()) {
                 $cabangId = null;
             }
 
+            // Penanda perangkat: dibuat sekali, disimpan di browser selama 5 tahun
+            $token = $request->cookie('device_id');
+            if (! is_string($token) || strlen($token) < 20) {
+                $token = Str::random(40);
+                Cookie::queue('device_id', $token, 60 * 24 * 365 * 5);
+            }
+            $hash = hash('sha256', $token);
+
+            $info = self::bacaPerangkat((string) $request->userAgent());
+
+            $baru = $aksi === 'login' && $userId
+                && ! self::where('device_hash', $hash)
+                    ->where('user_id', $userId)
+                    ->where('aksi', 'login')
+                    ->exists();
+
             self::create([
-                'user_id' => $userId ?? auth()->id(),
+                'user_id' => $userId,
                 'cabang_id' => $cabangId,
                 'aksi' => $aksi,
                 'email' => $email ?? auth()->user()?->email,
                 'ip_address' => $request->ip(),
-                'perangkat' => self::ringkasPerangkat((string) $request->userAgent()),
+                'perangkat' => $info['ringkas'],
+                'jenis_perangkat' => $info['jenis'],
+                'device_hash' => $hash,
+                'perangkat_baru' => $baru,
             ]);
         } catch (\Throwable $e) {
             report($e);
         }
     }
 
-    private static function ringkasPerangkat(string $ua): string
+    private static function bacaPerangkat(string $ua): array
     {
-        $browser = match (true) {
-            str_contains($ua, 'Edg/') => 'Edge',
-            str_contains($ua, 'OPR/'), str_contains($ua, 'Opera') => 'Opera',
-            str_contains($ua, 'Chrome/') => 'Chrome',
-            str_contains($ua, 'Firefox/') => 'Firefox',
-            str_contains($ua, 'Safari/') => 'Safari',
-            default => 'Browser lain',
+        $jenis = match (true) {
+            str_contains($ua, 'iPad') => 'Tablet',
+            str_contains($ua, 'Android') && ! str_contains($ua, 'Mobile') => 'Tablet',
+            str_contains($ua, 'iPhone'), str_contains($ua, 'Mobile') => 'HP',
+            default => 'Komputer',
         };
 
-        $os = match (true) {
-            str_contains($ua, 'iPhone'), str_contains($ua, 'iPad') => 'iOS',
-            str_contains($ua, 'Android') => 'Android',
-            str_contains($ua, 'Windows') => 'Windows',
-            str_contains($ua, 'Macintosh'), str_contains($ua, 'Mac OS X') => 'macOS',
-            str_contains($ua, 'Linux') => 'Linux',
-            default => 'OS lain',
-        };
+        $model = null;
 
-        return $browser . ' · ' . $os;
+        if (preg_match('/(?:iPhone OS|CPU OS) (\d+)[_.](\d+)/', $ua, $m)) {
+            $os = 'iOS ' . $m[1] . '.' . $m[2];
+        } elseif (preg_match('/Android (\d+(?:\.\d+)?)(?:; ([^;)]+))?/', $ua, $m)) {
+            $os = 'Android ' . $m[1];
+            $kandidat = trim((string) preg_replace('/\s*Build\/.*/', '', $m[2] ?? ''));
+            if (strlen($kandidat) > 2) {
+                $model = $kandidat;
+            }
+        } elseif (preg_match('/Windows NT (\d+\.\d+)/', $ua, $m)) {
+            $os = $m[1] === '10.0' ? 'Windows 10/11' : 'Windows';
+        } elseif (str_contains($ua, 'Macintosh') || str_contains($ua, 'Mac OS X')) {
+            $os = 'macOS';
+        } elseif (str_contains($ua, 'CrOS')) {
+            $os = 'ChromeOS';
+        } elseif (str_contains($ua, 'Linux')) {
+            $os = 'Linux';
+        } else {
+            $os = 'OS tidak dikenal';
+        }
+
+        $browser = 'Browser tidak dikenal';
+        $pola = [
+            '/Edg(?:e|A|iOS)?\/(\d+)/' => 'Edge',
+            '/OPR\/(\d+)/' => 'Opera',
+            '/(?:Chrome|CriOS)\/(\d+)/' => 'Chrome',
+            '/(?:Firefox|FxiOS)\/(\d+)/' => 'Firefox',
+            '/Version\/(\d+)[\d.]*.*Safari/' => 'Safari',
+        ];
+        foreach ($pola as $regex => $nama) {
+            if (preg_match($regex, $ua, $m)) {
+                $browser = $nama . ' ' . $m[1];
+                break;
+            }
+        }
+
+        $osTeks = $model ? "{$os} ({$model})" : $os;
+
+        return ['jenis' => $jenis, 'ringkas' => "{$osTeks} · {$browser}"];
     }
 }

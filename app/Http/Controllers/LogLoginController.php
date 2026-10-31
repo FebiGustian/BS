@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cabang;
 use App\Models\LogLogin;
+use App\Models\Perangkat;
 use Illuminate\Http\Request;
 
 class LogLoginController extends Controller
@@ -24,13 +25,37 @@ class LogLoginController extends Controller
 
         $logs = $query->paginate(20)->withQueryString();
 
+        $namaPerangkat = Perangkat::whereIn('device_hash', $logs->pluck('device_hash')->filter()->unique()->values())
+            ->pluck('nama', 'device_hash');
+
         $hariIni = LogLogin::whereDate('created_at', today());
         $loginHariIni = (clone $hariIni)->where('aksi', 'login')->count();
         $penggunaHariIni = (clone $hariIni)->where('aksi', 'login')->distinct()->count('user_id');
         $gagalHariIni = (clone $hariIni)->whereIn('aksi', ['gagal', 'ditolak'])->count();
+        $baruHariIni = (clone $hariIni)->where('perangkat_baru', true)->count();
 
         $cabangs = Cabang::orderBy('nama_cabang')->get(['id', 'nama_cabang']);
 
-        return view('activity-logs.index', compact('logs', 'cabangs', 'loginHariIni', 'penggunaHariIni', 'gagalHariIni'));
+        return view('activity-logs.index', compact(
+            'logs', 'cabangs', 'namaPerangkat',
+            'loginHariIni', 'penggunaHariIni', 'gagalHariIni', 'baruHariIni'
+        ));
+    }
+
+    public function namai(Request $request)
+    {
+        abort_unless(auth()->user()->role === 'admin', 403, 'Hanya admin yang boleh mengubah nama perangkat.');
+
+        $data = $request->validate([
+            'device_hash' => ['required', 'string', 'size:64', 'exists:log_logins,device_hash'],
+            'nama' => ['nullable', 'string', 'max:60'],
+        ]);
+
+        Perangkat::updateOrCreate(
+            ['device_hash' => $data['device_hash']],
+            ['nama' => $data['nama'] ?: null]
+        );
+
+        return back()->with('success', 'Nama perangkat disimpan.');
     }
 }

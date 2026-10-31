@@ -18,6 +18,7 @@
 <section class="cards" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
     <div class="card"><p>LOGIN HARI INI</p><h2>{{ $loginHariIni }}</h2><small>Login berhasil</small></div>
     <div class="card"><p>PENGGUNA HARI INI</p><h2>{{ $penggunaHariIni }}</h2><small>Pengguna berbeda yang login</small></div>
+    <div class="card"><p>PERANGKAT BARU</p><h2>{{ $baruHariIni }}</h2><small>Login dari perangkat baru hari ini</small></div>
     <div class="card"><p>LOGIN BERMASALAH</p><h2>{{ $gagalHariIni }}</h2><small>Gagal atau ditolak hari ini</small></div>
 </section>
 
@@ -59,6 +60,7 @@
             </thead>
             <tbody>
                 @forelse ($logs as $l)
+                    @php $nama = $l->device_hash ? ($namaPerangkat[$l->device_hash] ?? null) : null; @endphp
                     <tr>
                         <td>{{ $l->created_at->format('d/m/Y H:i:s') }}</td>
                         <td>
@@ -76,7 +78,26 @@
                             </span>
                         </td>
                         <td>{{ $l->ip_address ?: '-' }}</td>
-                        <td>{{ $l->perangkat ?: '-' }}</td>
+                        <td>
+                            @if ($nama)
+                                <strong>{{ $nama }}</strong><br>
+                            @endif
+                            <small style="color:#8491a5">{{ trim(($l->jenis_perangkat ? $l->jenis_perangkat . ' · ' : '') . ($l->perangkat ?: '-')) }}</small>
+                            @if ($l->perangkat_baru && ! $nama)
+                                <span style="display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;font-size:11px;background:#fef9c3;color:#854d0e">Perangkat baru</span>
+                            @endif
+                            @if ($l->device_hash)
+                                <details style="margin-top:6px">
+                                    <summary style="cursor:pointer;color:#3478f6;font-size:12px">{{ $nama ? 'Ubah nama' : 'Beri nama' }}</summary>
+                                    <form method="POST" action="{{ route('activity-logs.namai') }}" style="display:flex;gap:6px;margin-top:6px">
+                                        @csrf
+                                        <input type="hidden" name="device_hash" value="{{ $l->device_hash }}">
+                                        <input type="text" name="nama" value="{{ $nama }}" maxlength="60" placeholder="Contoh: MacBook Febi" style="min-width:150px">
+                                        <button type="submit" class="btn">Simpan</button>
+                                    </form>
+                                </details>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr><td colspan="6" style="text-align:center;color:#8491a5;padding:30px">Belum ada aktivitas yang tercatat.</td></tr>

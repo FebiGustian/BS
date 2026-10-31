@@ -46,3 +46,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/activity-logs', [\App\Http\Controllers\LogLoginController::class, 'index'])->name('activity-logs.index');
 });
+
+Route::middleware('auth')->group(function () {
+    Route::post('/activity-logs/perangkat', [\App\Http\Controllers\LogLoginController::class, 'namai'])->name('activity-logs.namai');
+});
