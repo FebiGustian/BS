@@ -100,7 +100,7 @@
     <nav class="menu">
         <a href="{{ route('stok.index', 'masuk') }}" class="{{ request()->routeIs('stok.*') && request()->route('jenis') === 'masuk' ? 'active' : '' }}">↓ &nbsp; Stock In</a>
         <a href="{{ route('stok.index', 'keluar') }}" class="{{ request()->routeIs('stok.*') && request()->route('jenis') === 'keluar' ? 'active' : '' }}">↑ &nbsp; Stock Out</a>
-        <a href="#">⇄ &nbsp; Adjustments</a>
+        <a href="{{ route('penyesuaian.index') }}" class="{{ request()->routeIs('penyesuaian.*') ? 'active' : '' }}">⇄ &nbsp; Adjustments</a>
         <a href="#">▣ &nbsp; Barcode / QR</a>
     </nav>
     <div class="label">CASH MANAGEMENT</div>

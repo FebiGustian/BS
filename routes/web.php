@@ -36,3 +36,9 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->group(base_path('routes/akuntansi.php'));
+
+Route::middleware('auth')->group(function () {
+    Route::get('/penyesuaian', [\App\Http\Controllers\PenyesuaianStokController::class, 'index'])->name('penyesuaian.index');
+    Route::get('/penyesuaian/create', [\App\Http\Controllers\PenyesuaianStokController::class, 'create'])->name('penyesuaian.create');
+    Route::post('/penyesuaian', [\App\Http\Controllers\PenyesuaianStokController::class, 'store'])->name('penyesuaian.store');
+});
