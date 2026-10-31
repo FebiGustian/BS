@@ -14,18 +14,18 @@ class DashboardController extends Controller
         $cabangId = (int) session('cabang_id');
         $cabang = Cabang::find($cabangId);
 
-        $stok = fn () => DB::table('barang_cabang')
-            ->join('barangs', 'barangs.id', '=', 'barang_cabang.barang_id')
+        $stok = fn () => DB::table('stok_cabangs')
+            ->join('barangs', 'barangs.id', '=', 'stok_cabangs.barang_id')
             ->whereNull('barangs.deleted_at')
-            ->where('barang_cabang.cabang_id', $cabangId);
+            ->where('stok_cabangs.cabang_id', $cabangId);
 
         $totalProduk = $stok()->count();
-        $nilaiStok = (float) $stok()->sum(DB::raw('barang_cabang.stok * barangs.harga_beli'));
+        $nilaiStok = (float) $stok()->sum(DB::raw('stok_cabangs.stok * barangs.harga_beli'));
         $stokMenipis = $stok()
-            ->where('barang_cabang.stok', '>', 0)
-            ->whereColumn('barang_cabang.stok', '<=', 'barang_cabang.stok_minimum')
+            ->where('stok_cabangs.stok', '>', 0)
+            ->whereColumn('stok_cabangs.stok', '<=', 'stok_cabangs.stok_minimum')
             ->count();
-        $stokHabis = $stok()->where('barang_cabang.stok', 0)->count();
+        $stokHabis = $stok()->where('stok_cabangs.stok', 0)->count();
 
         $awal = now()->startOfMonth()->toDateString();
         $akhir = now()->endOfMonth()->toDateString();

@@ -59,7 +59,7 @@ class TransaksiStokController extends Controller
         $k = $this->konfig($jenis);
         $cabangId = (int) session('cabang_id');
 
-        $stokCabang = DB::table('barang_cabang')->where('cabang_id', $cabangId)->pluck('stok', 'barang_id');
+        $stokCabang = DB::table('stok_cabangs')->where('cabang_id', $cabangId)->pluck('stok', 'barang_id');
 
         $barangs = Barang::where('is_active', true)
             ->orderBy('nama_barang')
@@ -123,7 +123,7 @@ class TransaksiStokController extends Controller
                     $this->tambahStok($cabangId, $barangId, $jumlah);
                 } elseif (! $this->kurangiStok($cabangId, $barangId, $jumlah)) {
                     $barang = Barang::withTrashed()->find($barangId);
-                    $tersedia = (int) DB::table('barang_cabang')
+                    $tersedia = (int) DB::table('stok_cabangs')
                         ->where('cabang_id', $cabangId)
                         ->where('barang_id', $barangId)
                         ->value('stok');
@@ -206,7 +206,7 @@ class TransaksiStokController extends Controller
 
     private function tambahStok(int $cabangId, int $barangId, int $jumlah): void
     {
-        $query = DB::table('barang_cabang')
+        $query = DB::table('stok_cabangs')
             ->where('cabang_id', $cabangId)
             ->where('barang_id', $barangId);
 
@@ -216,7 +216,7 @@ class TransaksiStokController extends Controller
             return;
         }
 
-        DB::table('barang_cabang')->insert([
+        DB::table('stok_cabangs')->insert([
             'barang_id' => $barangId,
             'cabang_id' => $cabangId,
             'stok' => $jumlah,
@@ -228,7 +228,7 @@ class TransaksiStokController extends Controller
 
     private function kurangiStok(int $cabangId, int $barangId, int $jumlah): bool
     {
-        return DB::table('barang_cabang')
+        return DB::table('stok_cabangs')
             ->where('cabang_id', $cabangId)
             ->where('barang_id', $barangId)
             ->where('stok', '>=', $jumlah)

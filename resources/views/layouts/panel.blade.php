@@ -103,6 +103,19 @@
         <a href="#">⇄ &nbsp; Adjustments</a>
         <a href="#">▣ &nbsp; Barcode / QR</a>
     </nav>
+    <div class="label">CASH MANAGEMENT</div>
+    <nav class="menu">
+        <a href="{{ route('kas.index') }}" class="{{ request()->routeIs('kas.*') ? 'active' : '' }}">▤ &nbsp; Manajemen Kas</a>
+        <a href="{{ route('kas.create', ['jenis' => 'income']) }}">↓ &nbsp; Pemasukan Kas</a>
+        <a href="{{ route('kas.create', ['jenis' => 'expense']) }}">↑ &nbsp; Pengeluaran Kas</a>
+        <a href="{{ route('kas.create', ['jenis' => 'transfer_in']) }}">⇄ &nbsp; Transfer Pusat-Cabang</a>
+    </nav>
+    <div class="label">ACCOUNTING</div>
+    <nav class="menu">
+        <a href="{{ route('accounts.index') }}" class="{{ request()->routeIs('accounts.*') ? 'active' : '' }}">▤ &nbsp; Chart of Accounts</a>
+        <a href="{{ route('jurnal.index') }}" class="{{ request()->routeIs('jurnal.*') ? 'active' : '' }}">▤ &nbsp; Jurnal Umum</a>
+        <a href="{{ route('buku-besar.index') }}" class="{{ request()->routeIs('buku-besar.*') ? 'active' : '' }}">▤ &nbsp; Buku Besar</a>
+    </nav>
     <div class="label">ANALYTICS</div>
     <nav class="menu">
         <a href="#">▥ &nbsp; Reports</a>

@@ -38,7 +38,7 @@ class Barang extends Model
 
     public function cabangs(): BelongsToMany
     {
-        return $this->belongsToMany(Cabang::class, 'barang_cabang')
+        return $this->belongsToMany(Cabang::class, 'stok_cabangs')
             ->withPivot(['stok', 'stok_minimum'])
             ->withTimestamps();
     }
@@ -50,14 +50,14 @@ class Barang extends Model
     public function scopeDiCabang($query, int $cabangId)
     {
         return $query
-            ->join('barang_cabang', function ($join) use ($cabangId) {
-                $join->on('barang_cabang.barang_id', '=', 'barangs.id')
-                    ->where('barang_cabang.cabang_id', '=', $cabangId);
+            ->join('stok_cabangs', function ($join) use ($cabangId) {
+                $join->on('stok_cabangs.barang_id', '=', 'barangs.id')
+                    ->where('stok_cabangs.cabang_id', '=', $cabangId);
             })
             ->select(
                 'barangs.*',
-                'barang_cabang.stok as stok_cabang',
-                'barang_cabang.stok_minimum as stok_minimum_cabang'
+                'stok_cabangs.stok as stok_cabang',
+                'stok_cabangs.stok_minimum as stok_minimum_cabang'
             );
     }
 }

@@ -52,7 +52,7 @@ class LoginController extends Controller
         $request->session()->regenerate();
         $request->session()->put('cabang_id', (int) $data['cabang_id']);
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->route('selamat-datang');
     }
 
     public function logout(Request $request)

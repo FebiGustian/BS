@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Master COA | Bintang Silver</title>
+    <style>
+        *{box-sizing:border-box}
+        body{margin:0;background:#f5f7fb;color:#253047;font-family:Arial,sans-serif}
+        .container{max-width:1200px;margin:auto;padding:30px 20px}
+        .top{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+        h1{margin:8px 0;font-size:27px}
+        .muted{color:#788399;font-size:13px}
+        .card{background:white;border:1px solid #e7ebf1;border-radius:12px;padding:20px;margin-top:20px}
+        .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:22px}
+        .number{font-size:28px;font-weight:bold;margin-top:8px}
+        .btn{display:inline-block;padding:11px 16px;border-radius:8px;text-decoration:none;border:0;cursor:pointer;font-size:13px}
+        .primary{background:#2457d6;color:white}
+        .light{background:white;color:#344054;border:1px solid #ddd}
+        input,select{padding:11px;border:1px solid #dce2ea;border-radius:8px;font:inherit}
+        .filters{display:flex;gap:10px;flex-wrap:wrap}
+        .filters input{flex:2;min-width:180px}
+        .filters select{flex:1;min-width:140px}
+        .table-wrap{overflow-x:auto;margin-top:18px}
+        table{width:100%;border-collapse:collapse;min-width:750px}
+        th,td{text-align:left;padding:14px 12px;border-bottom:1px solid #edf0f4;font-size:13px}
+        th{background:#fafbfc;color:#788399}
+        .code{font-weight:bold;color:#2457d6;font-family:monospace}
+        .badge{padding:5px 9px;border-radius:20px;font-size:11px}
+        .active{background:#e5f7ed;color:#167447}
+        .inactive{background:#f1f2f4;color:#667085}
+        .message{padding:13px;background:#e5f7ed;color:#167447;border-radius:8px;margin-top:18px}
+        .action{color:#2457d6;text-decoration:none;font-weight:bold}
+        .pagination{margin-top:20px}
+        .pagination nav{display:flex;justify-content:space-between}
+        @media(max-width:600px){.stats{grid-template-columns:1fr}h1{font-size:22px}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="muted">BINTANG SILVER / FINANCE & ACCOUNTING</div>
+    <div class="top">
+        <div>
+            <h1>Master Chart of Accounts</h1>
+            <div class="muted">Pengelolaan daftar akun akuntansi perusahaan.</div>
+        </div>
+        <a href="{{ route('accounts.create') }}" class="btn primary">+ Tambah Akun</a>
+    </div>
+
+    @if(session('success'))
+        <div class="message">{{ session('success') }}</div>
+    @endif
+
+    <div class="stats">
+        <div class="card">
+            <div class="muted">Total Akun</div>
+            <div class="number">{{ $totalAccounts }}</div>
+        </div>
+        <div class="card">
+            <div class="muted">Akun Aktif</div>
+            <div class="number">{{ $activeAccounts }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <form method="GET" action="{{ route('accounts.index') }}" class="filters">
+            <input name="search" placeholder="Cari kode atau nama akun..." value="{{ request('search') }}">
+            <select name="type">
+                <option value="">Semua Jenis</option>
+                @foreach($types as $key=>$label)
+                    <option value="{{ $key }}" @selected(request('type')===$key)>{{ $label }}</option>
+                @endforeach
+            </select>
+            <select name="status">
+                <option value="">Semua Status</option>
+                <option value="active" @selected(request('status')==='active')>Aktif</option>
+                <option value="inactive" @selected(request('status')==='inactive')>Nonaktif</option>
+            </select>
+            <button class="btn primary">Filter</button>
+            <a href="{{ route('accounts.index') }}" class="btn light">Reset</a>
+        </form>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Kode</th><th>Nama Akun</th><th>Jenis</th>
+                    <th>Saldo Normal</th><th>Akun Induk</th><th>Status</th><th>Aksi</th>
+                </tr>
+                </thead>
+                <tbody>
+                @forelse($accounts as $account)
+                    <tr>
+                        <td class="code">{{ $account->code }}</td>
+                        <td>
+                            <strong>{{ $account->name }}</strong>
+                            @if($account->is_system)<div class="muted">Akun sistem</div>@endif
+                        </td>
+                        <td>{{ $types[$account->type] ?? $account->type }}</td>
+                        <td>{{ strtoupper($account->normal_balance) }}</td>
+                        <td>{{ $account->parent?->name ?? '-' }}</td>
+                        <td>
+                            <span class="badge {{ $account->is_active?'active':'inactive' }}">
+                                {{ $account->is_active?'Aktif':'Nonaktif' }}
+                            </span>
+                        </td>
+                        <td><a class="action" href="{{ route('accounts.edit',$account) }}">Edit</a></td>
+                    </tr>
+                @empty
+                    <tr><td colspan="7" style="text-align:center">Belum ada akun.</td></tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">{{ $accounts->links() }}</div>
+    </div>
+    <p class="muted">Bintang Silver Accounting System</p>
+</div>
+</body>
+</html>
