@@ -42,3 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/penyesuaian/create', [\App\Http\Controllers\PenyesuaianStokController::class, 'create'])->name('penyesuaian.create');
     Route::post('/penyesuaian', [\App\Http\Controllers\PenyesuaianStokController::class, 'store'])->name('penyesuaian.store');
 });
+
+Route::middleware('auth')->group(function () {
+    Route::get('/activity-logs', [\App\Http\Controllers\LogLoginController::class, 'index'])->name('activity-logs.index');
+});

@@ -119,7 +119,9 @@
     <div class="label">ANALYTICS</div>
     <nav class="menu">
         <a href="#">▥ &nbsp; Reports</a>
-        <a href="#">◷ &nbsp; Activity Logs</a>
+        @if (auth()->user()->role === 'admin')
+        <a href="{{ route('activity-logs.index') }}" class="{{ request()->routeIs('activity-logs.*') ? 'active' : '' }}">◷ &nbsp; Activity Logs</a>
+        @endif
     </nav>
 </aside>
 <main class="main">

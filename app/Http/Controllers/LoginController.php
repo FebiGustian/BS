@@ -40,6 +40,7 @@ class LoginController extends Controller
         $user = Auth::user();
 
         if ($user->role !== 'admin' && (int) $user->cabang_id !== (int) $data['cabang_id']) {
+            \App\Models\LogLogin::catat('ditolak', null, null, $request->integer('cabang_id'));
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
@@ -51,12 +52,14 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
         $request->session()->put('cabang_id', (int) $data['cabang_id']);
+        \App\Models\LogLogin::catat('login');
 
         return redirect()->route('selamat-datang');
     }
 
     public function logout(Request $request)
     {
+        \App\Models\LogLogin::catat('logout');
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
